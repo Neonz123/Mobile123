@@ -4,13 +4,14 @@ require('dotenv').config();
 
 const authRoutes = require("./routes/auth");
 const motoRoutes = require("./routes/moto");
-const rentalRoutes = require("./routes/rental");  
+const rentalRoutes = require("./routes/rental");
 const autoReturnMoto = require("./utils/autoReturnMoto");
 const bookingRoutes = require("./routes/book");
+const profileRoutes = require("./routes/get_profile");
 
 setInterval(() => {
   autoReturnMoto();
-}, 60 * 1000); 
+}, 60 * 1000);
 
 const app = express();
 app.use(cors());
@@ -27,6 +28,7 @@ app.use("/api/motos", motoRoutes);
 
 
 app.use("/api/bookings", bookingRoutes);
+app.use("/api", profileRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

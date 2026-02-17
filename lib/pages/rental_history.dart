@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../services/api_service.dart';
 
 class RentalHistoryPage extends StatefulWidget {
   const RentalHistoryPage({super.key});
@@ -10,8 +10,6 @@ class RentalHistoryPage extends StatefulWidget {
 }
 
 class _RentalHistoryPageState extends State<RentalHistoryPage> {
-  final String _historyUrl = "http://10.0.2.2:3000/api/history";
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +26,12 @@ class _RentalHistoryPageState extends State<RentalHistoryPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          
+          if (snapshot.hasError) {
+            return _errorState(snapshot.error.toString());
+          }
+          
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return _emptyState();
           }
 
@@ -43,8 +46,25 @@ class _RentalHistoryPageState extends State<RentalHistoryPage> {
   }
 
   Future<List<dynamic>> _fetchHistory() async {
-    final response = await http.get(Uri.parse(_historyUrl));
-    return response.statusCode == 200 ? jsonDecode(response.body) : [];
+    try {
+      debugPrint("🔍 Fetching rental history...");
+      final response = await ApiService.get('/history');
+      
+      debugPrint("📡 Response status: ${response.statusCode}");
+      debugPrint("📦 Response body: ${response.body}");
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        debugPrint("✅ Found ${data.length} completed rentals");
+        return data;
+      } else {
+        debugPrint("❌ Failed with status: ${response.statusCode}");
+        throw Exception('Failed to load history');
+      }
+    } catch (e) {
+      debugPrint("💥 Error fetching history: $e");
+      rethrow; // Let FutureBuilder handle the error
+    }
   }
 
   Widget _historyCard(dynamic data) {
@@ -83,6 +103,31 @@ class _RentalHistoryPageState extends State<RentalHistoryPage> {
           const SizedBox(width: 10),
           Text(text, style: const TextStyle(color: Colors.grey)),
         ],
+      ),
+    );
+  }
+
+  Widget _errorState(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 60, color: Colors.red),
+            const SizedBox(height: 15),
+            Text(
+              message,
+              style: const TextStyle(color: Colors.red, fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+              child: const Text('Login Again'),
+            ),
+          ],
+        ),
       ),
     );
   }

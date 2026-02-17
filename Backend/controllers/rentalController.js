@@ -3,7 +3,7 @@ const pool = require("../db/pool");
 const rentMoto = async (req, res) => {
   // Use let or const for the incoming fields
   const { moto_id, start_date, end_date, booking_id } = req.body;
-  const user_id = 1; // temporary hardcoded user
+  const user_id = req.user.id; // Get authenticated user ID from JWT token
 
   if (!moto_id || !start_date || !end_date || !booking_id) {
     return res.status(400).json({ message: "Missing fields" });
@@ -97,7 +97,7 @@ const rentMoto = async (req, res) => {
 
 const myRentals = async (req, res) => {
   try {
-    const user_id = 1; 
+    const user_id = req.user.id; // Get authenticated user ID from JWT token
 
     // 🛡️ FIX: Removed semicolon after WHERE and fixed JOIN to show Booking names
     const result = await pool.query(

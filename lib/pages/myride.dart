@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../services/api_service.dart';
 
 class MyRidePage extends StatefulWidget {
   const MyRidePage({super.key});
@@ -11,8 +11,8 @@ class MyRidePage extends StatefulWidget {
 
 class _MyRidePageState extends State<MyRidePage> {
   bool _isLoading = true; 
-  List<dynamic> _allMotos = []; 
-  final String _motoApiUrl = "http://10.0.2.2:3000/api/my-rentals";
+  List<dynamic> _allMotos = [];
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -22,10 +22,14 @@ class _MyRidePageState extends State<MyRidePage> {
 
   Future<void> _fetchMyRides() async {
     if (!mounted) return;
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
     try {
-      final response = await http.get(Uri.parse(_motoApiUrl));
+      final response = await ApiService.get('/my-rentals');
+      
       if (response.statusCode == 200) {
         if (mounted) {
           setState(() {
@@ -34,11 +38,21 @@ class _MyRidePageState extends State<MyRidePage> {
           });
         }
       } else {
-        if (mounted) setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage = 'Failed to load rides';
+          });
+        }
       }
     } catch (e) {
       debugPrint("Error: $e");
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
+      }
     }
   }
 
@@ -55,7 +69,9 @@ class _MyRidePageState extends State<MyRidePage> {
       ),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator(color: Colors.green))
-        : RefreshIndicator(
+        : _errorMessage != null
+          ? _buildErrorState()
+          : RefreshIndicator(
             onRefresh: _fetchMyRides,
             child: ListView(
               padding: const EdgeInsets.all(20),
@@ -64,24 +80,44 @@ class _MyRidePageState extends State<MyRidePage> {
                   const Center(child: Text("No active rides found"))
                 else
                  ..._allMotos.map((ride) {
-  // 💡 TEMPORARY: Add this print to your console to see what the server sends
-                print("SERVER DATA: $ride"); 
-                // Inside your ListView or FutureBuilder in myride.dart
                 return _buildRideItem(
                  ride['moto_name'] ?? "Unknown Moto", 
                  ride['start_date'] ?? "N/A", 
                  ride['total_price']?.toString() ?? "0.00",
                  ride['client_name'] ?? "Unknown", 
                  ride['contact'] ?? "N/A",
-                 ride['image'] ?? "default_moto.png" // Use the 'image' field from your DB
+                 ride['image'] ?? "default_moto.png"
 );
-
-
                 
 }),
             ],
             ),
           ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 60, color: Colors.red),
+            const SizedBox(height: 15),
+            Text(
+              _errorMessage ?? 'An error occurred',
+              style: const TextStyle(color: Colors.red, fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+              child: const Text('Login Again'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

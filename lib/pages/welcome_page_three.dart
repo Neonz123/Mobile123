@@ -128,7 +128,7 @@ class WelcomePageThree extends StatelessWidget {
               const SizedBox(height: 8),
 
               const Text(
-                'सुरक्षित और विश्वसनीय',
+                "Have a great experience",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,

@@ -7,11 +7,10 @@ import 'package:_assignment_mobile/pages/profile.dart';
 // home widgets
 import 'package:_assignment_mobile/widget/home/header_section.dart';
 import 'package:_assignment_mobile/widget/home/location_cards.dart';
-import 'package:_assignment_mobile/widget/home/action_cards.dart';
 import 'package:_assignment_mobile/widget/home/quick_actions.dart';
-import 'package:_assignment_mobile/widget/home/2box.dart';
-import 'package:_assignment_mobile/widget/home/nearby_drivers.dart';
+import 'package:_assignment_mobile/widget/home/feature.dart';
 import 'package:_assignment_mobile/widget/home/popular_rental.dart';
+import 'package:_assignment_mobile/widget/home/new%20model%20.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -37,11 +36,9 @@ class _MyHomePageState extends State<MyHomePage> {
             SizedBox(height: 20),
             ActionCards(),
             SizedBox(height: 20),
-            QuickActions(),
+            FeaturedBikesList(),
             SizedBox(height: 20),
-            TwoBoxWidget(),
-            SizedBox(height: 20),
-            NearbyDrivers(),
+            AvailableMotos(),
             SizedBox(height: 20),
             PopularRental(),
           ],

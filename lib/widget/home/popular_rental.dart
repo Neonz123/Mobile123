@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:_assignment_mobile/pages/booking.dart';
+import 'package:_assignment_mobile/pages/rent.dart';
+
 
 class PopularRental extends StatelessWidget {
   const PopularRental({super.key});
@@ -21,10 +24,25 @@ class PopularRental extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                // 🏁 LINK: Go to RentPage (Show All)
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => RentPage(
+                      bookingId: "0", // ❌ not booked
+                      clientName: "",
+                      contact: "N/A",
+                      startDate: DateTime.now(),
+                      endDate: DateTime.now().add(const Duration(days: 1)),
+                    ),
+                  ),
+                );
+              },
               child: const Text(
                 "See all",
-                style: TextStyle(color: Color(0xFF2DBB7D), fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Color(0xFF2DBB7D), fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -33,7 +51,7 @@ class PopularRental extends StatelessWidget {
 
         // 🔹 HORIZONTAL LIST
         SizedBox(
-          height: 220, // Give it a fixed height for horizontal scrolling
+          height: 220,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: 2,
@@ -43,7 +61,9 @@ class PopularRental extends StatelessWidget {
                 name: index == 0 ? "Honda Dream 125" : "Honda PCX 160",
                 rating: index == 0 ? "4.9" : "4.8",
                 price: index == 0 ? "8" : "15",
-                image: "assets/icons/rent.png", // Change to your moto image
+                image: index == 0
+                    ? "assets/icons/legend-Black.png"
+                    : "assets/icons/pcx.png",
               );
             },
           ),
@@ -52,6 +72,7 @@ class PopularRental extends StatelessWidget {
     );
   }
 }
+
 class _MotoCard extends StatelessWidget {
   final String name;
   final String rating;
@@ -69,7 +90,7 @@ class _MotoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 170,
-      margin: const EdgeInsets.symmetric(vertical: 5), // Space for shadow
+      margin: const EdgeInsets.symmetric(vertical: 5),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -81,30 +102,30 @@ class _MotoCard extends StatelessWidget {
           ),
         ],
       ),
-      // 🔹 1. Use ClipRRect so the ripple effect stays inside the rounded corners
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: Material(
-          color: Colors.transparent, // Keeps the Container's white color
+          color: Colors.transparent,
           child: InkWell(
-            // 🔹 2. The effect happens here
-            splashColor: const Color(0xFF2DBB7D).withOpacity(0.1), // Custom ripple color
+            splashColor: const Color(0xFF2DBB7D).withOpacity(0.1),
             highlightColor: Colors.transparent,
             onTap: () {
               debugPrint("Tapped on $name");
-              // Navigate or perform action here
+              // 🏁 LINK: Go to Booking Page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const BookingPage()),
+              );
             },
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 🏍️ MOTO IMAGE
                 Image.asset(
                   image,
                   height: 130,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
-                
                 Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Column(
@@ -121,13 +142,13 @@ class _MotoCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 10),
-
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.star, color: Colors.orangeAccent, size: 16),
+                              const Icon(Icons.star,
+                                  color: Colors.orangeAccent, size: 16),
                               const SizedBox(width: 4),
                               Text(
                                 rating,
@@ -148,7 +169,8 @@ class _MotoCard extends StatelessWidget {
                                 ),
                                 const TextSpan(
                                   text: "/day",
-                                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                                  style: TextStyle(
+                                      color: Colors.grey, fontSize: 12),
                                 ),
                               ],
                             ),

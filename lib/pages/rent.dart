@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../services/api_service.dart';
 
 
 /// MOTO MODEL
@@ -27,6 +28,7 @@ class Moto {
       pricePerDay: int.tryParse(json['price_per_day'].toString()) ?? 0,
       isAvailable:
           json['status'].toString().toLowerCase() == 'available',
+      image: json['image'], // ✅ Parse image field from JSON
     );
   }
 }
@@ -54,7 +56,6 @@ class RentPage extends StatefulWidget {
 
 class _RentPageState extends State<RentPage> {
   final String _motoApiUrl = "http://10.0.2.2:3000/api/motos";
-  final String _rentApiUrl = "http://10.0.2.2:3000/api/rentals";
 
   final TextEditingController _searchController =
       TextEditingController();
@@ -201,18 +202,14 @@ Future<void> _fetchMotos() async {
   setState(() => _isSubmitting = true);
 
   try {
-    final response = await http.post(
-      Uri.parse(_rentApiUrl),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "booking_id": bId,
-        "moto_id": moto.id,
-        "start_date": widget.startDate.toIso8601String(),
-        "end_date": widget.endDate.toIso8601String(),
-        "client_name": widget.clientName,
-        "contact": widget.contact,
-      }),
-    );
+    final response = await ApiService.post('/rentals', {
+      "booking_id": bId,
+      "moto_id": moto.id,
+      "start_date": widget.startDate.toIso8601String(),
+      "end_date": widget.endDate.toIso8601String(),
+      "client_name": widget.clientName,
+      "contact": widget.contact,
+    });
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       if (!mounted) return;
@@ -416,7 +413,7 @@ Widget build(BuildContext context) {
                 ),
                 child: ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                  child: moto.image != null
+                  child: moto.image != null 
                       ? Image.network(
                           "http://10.0.2.2:3000/uploads/${moto.image}",
                           fit: BoxFit.cover,

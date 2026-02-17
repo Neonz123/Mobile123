@@ -15,7 +15,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   final List<OnboardingData> _pages = [
     OnboardingData(
       title: 'Book Rides Instantly',
-      subtitle: 'बुक करें तुरंत',
+      subtitle: 'Hello there',
       description:
           'Find two-wheelers offering a range of bikes and scooters. Safe, fast, and affordable.',
       image: 'assets/scooter.png',
@@ -35,7 +35,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     ),
     OnboardingData(
       title: 'Safe & Trusted Service',
-      subtitle: 'सुरक्षित और विश्वसनीय',
+      subtitle: 'let get started',
       description:
           'All drivers and vehicles verified. 24/7 support and emergency assistance.',
       image: 'assets/horse.png',
@@ -78,8 +78,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   void _getStarted() {
-    // Navigate to home or main app
-    Navigator.pushReplacementNamed(context, '/home');
+    // Navigate to login page
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override

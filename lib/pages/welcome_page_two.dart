@@ -128,7 +128,7 @@ class WelcomePageTwo extends StatelessWidget {
               const SizedBox(height: 8),
 
               const Text(
-                'घंटे या दिन के हिसाब से',
+                'hElllo',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
