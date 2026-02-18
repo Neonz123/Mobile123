@@ -36,12 +36,12 @@ class FeaturedBikesList extends StatelessWidget {
           separatorBuilder: (_, __) => const SizedBox(height: 20),
           itemBuilder: (context, index) {
             return _FeaturedBikeCard(
-              name: index == 0 ? "Honda dream" : "PCX 160",
-              brand: index == 0 ? "dream" : "Honda",
+              name: index == 0 ? "Honda dream" : "Ducati",
+              brand: index == 0 ? "dream" : "big bike",
               price: index == 0 ? "50" : "30",
               image: index == 0
                   ? 'assets/icons/honda_white.png'
-                  : 'assets/icons/pcx.png',
+                  : 'assets/icons/ducati.png',
               description: index == 0
                   ? "The ultimate sportbike designed for track days and adrenaline junkies. Features cutting-edge electronics."
                   : "Comfortable city ride, fuel efficient and reliable for daily commuting.",

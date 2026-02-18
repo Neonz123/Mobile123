@@ -93,7 +93,7 @@ class WelcomePageTwo extends StatelessWidget {
                       // ATV Image
                       Center(
                         child: Image.asset(
-                          'assets/atv.png',
+                          'assets/icons/aerox.png',
                           height: 250,
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) {
@@ -128,7 +128,7 @@ class WelcomePageTwo extends StatelessWidget {
               const SizedBox(height: 8),
 
               const Text(
-                'hElllo',
+                'Hello',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,

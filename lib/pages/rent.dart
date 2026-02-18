@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../config/env_config.dart';
 import 'dart:convert';
 import '../services/api_service.dart';
 
@@ -55,7 +56,6 @@ class RentPage extends StatefulWidget {
 }
 
 class _RentPageState extends State<RentPage> {
-  final String _motoApiUrl = "http://10.0.2.2:3000/api/motos";
 
   final TextEditingController _searchController =
       TextEditingController();
@@ -92,7 +92,10 @@ Future<void> _fetchMotos() async {
   if (mounted) setState(() => _isLoading = true); // Spinner starts
 
   try {
-    final response = await http.get(Uri.parse(_motoApiUrl));
+    final response = await http.get(
+   Uri.parse(EnvConfig.getEndpoint('motos')),
+);
+
 
     if (response.statusCode == 200) {
       final List<dynamic> decoded = jsonDecode(response.body);
@@ -411,17 +414,21 @@ Widget build(BuildContext context) {
                   color: Colors.grey[100],
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                  child: moto.image != null 
-                      ? Image.network(
-                          "http://10.0.2.2:3000/uploads/${moto.image}",
-                          fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, stack) => 
-                              const Icon(Icons.motorcycle, size: 50, color: Colors.grey),
+                       child: ClipRRect(
+                       borderRadius:
+                       const BorderRadius.vertical(top: Radius.circular(24)),
+                       child: moto.image != null
+                       ? Image.asset(
+                      "assets/icons/${moto.image}",
+                      fit: BoxFit.cover,
                         )
-                      : const Icon(Icons.motorcycle, size: 50, color: Colors.grey),
-                ),
+                    : const Icon(
+                     Icons.motorcycle,
+                      size: 50,
+                      color: Colors.grey,
+                       ),
+                       ),
+
               ),
               // Floating Star Rating Badge
               Positioned(

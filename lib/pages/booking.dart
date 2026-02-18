@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/env_config.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'rent.dart';
@@ -18,7 +19,6 @@ class BookingData {
     required this.dropOff,
   });
 
-  // Convert to JSON for API
   Map<String, dynamic> toJson() {
     return {
       'client_name': name,
@@ -28,7 +28,6 @@ class BookingData {
     };
   }
 
-  // Factory from JSON
   factory BookingData.fromJson(Map<String, dynamic> json) {
     return BookingData(
       id: json['id'].toString(),
@@ -39,6 +38,7 @@ class BookingData {
     );
   }
 }
+
 class BookingPage extends StatefulWidget {
   const BookingPage({super.key});
 
@@ -49,11 +49,7 @@ class BookingPage extends StatefulWidget {
 class _BookingPageState extends State<BookingPage> {
   final List<BookingData> _bookings = [];
   bool _isLoading = false;
-  
-  // ✅ USE THIS FOR ANDROID EMULATOR
-  final String _apiUrl = "http://10.0.2.2:3000/api/bookings";
-  
-  // Teacher's Undo Storage
+
   BookingData? _lastRemovedBooking;
   int? _lastRemovedIndex;
 
@@ -63,13 +59,6 @@ class _BookingPageState extends State<BookingPage> {
   DateTime? _pickUpDateTime;
   DateTime? _dropOffDateTime;
 
-  @override
-  void initState() {
-    super.initState();
-    // Load bookings when page starts
-    // _loadBookings();
-  }
-  // 📅 Pick Date and Time Helper
   Future<DateTime?> _pickDateTime() async {
     final date = await showDatePicker(
       context: context,
@@ -88,71 +77,64 @@ class _BookingPageState extends State<BookingPage> {
     return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
-  // ➕ Add Booking to Database
   Future<void> _addBooking() async {
-  FocusScope.of(context).unfocus();
+    FocusScope.of(context).unfocus();
 
-  // Validation... (Keep your existing validation logic)
-  if (_nameController.text.isEmpty || _pickUpDateTime == null || _dropOffDateTime == null) {
-    _showError("Please fill all fields");
-    return;
-  }
-
-  setState(() => _isLoading = true);
-
-  try {
-    // 1. Create temporary object (This ID is just a placeholder)
-    final tempBooking = BookingData(
-      id: "TEMP", 
-      name: _nameController.text.trim(),
-      contact: _contactController.text.trim(),
-      pickUp: _pickUpDateTime!,
-      dropOff: _dropOffDateTime!,
-    );
-
-    final response = await http.post(
-      Uri.parse(_apiUrl),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(tempBooking.toJson()),
-    );
-
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
-      
-      // 🎯 THE FIX: Get the ID from responseData['booking']['id']
-      // Your Node backend returns { "booking": { "id": 102, ... } }
-      final dynamic bookingObject = responseData['booking'];
-      final String realId = bookingObject['id'].toString();
-
-      if (mounted) {
-        setState(() {
-          _bookings.add(BookingData(
-            id: realId, // ✅ Use the Real ID from the Database (e.g., "102")
-            name: tempBooking.name,
-            contact: tempBooking.contact,
-            pickUp: tempBooking.pickUp,
-            dropOff: tempBooking.dropOff,
-          ));
-        });
-
-        _nameController.clear();
-        _contactController.clear();
-        _pickUpDateTime = null;
-        _dropOffDateTime = null;
-        _showSuccess("✅ Booking saved with ID: $realId");
-      }
-    } else {
-      throw Exception("Server rejected booking");
+    if (_nameController.text.isEmpty || _pickUpDateTime == null || _dropOffDateTime == null) {
+      _showError("Please fill all fields");
+      return;
     }
-  } catch (e) {
-    print("❌ Save error: $e");
-    _showError("⚠️ Failed to save to server. Please check connection.");
-  } finally {
-    if (mounted) setState(() => _isLoading = false);
-  }
-}
 
-void _removeBooking(int index, BookingData booking) {
+    setState(() => _isLoading = true);
+
+    try {
+      final tempBooking = BookingData(
+        id: "TEMP",
+        name: _nameController.text.trim(),
+        contact: _contactController.text.trim(),
+        pickUp: _pickUpDateTime!,
+        dropOff: _dropOffDateTime!,
+      );
+
+      final response = await http.post(
+      Uri.parse(EnvConfig.getEndpoint('bookings')),
+      headers: {"Content-Type": "application/json"},
+       body: jsonEncode(tempBooking.toJson()),
+       );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final dynamic bookingObject = responseData['booking'];
+        final String realId = bookingObject['id'].toString();
+
+        if (mounted) {
+          setState(() {
+            _bookings.add(BookingData(
+              id: realId,
+              name: tempBooking.name,
+              contact: tempBooking.contact,
+              pickUp: tempBooking.pickUp,
+              dropOff: tempBooking.dropOff,
+            ));
+          });
+
+          _nameController.clear();
+          _contactController.clear();
+          _pickUpDateTime = null;
+          _dropOffDateTime = null;
+          _showSuccess("✅ Booking saved with ID: $realId");
+        }
+      } else {
+        throw Exception("Server rejected booking");
+      }
+    } catch (e) {
+      _showError("⚠️ Failed to save to server.");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _removeBooking(int index, BookingData booking) {
   _lastRemovedBooking = booking;
   _lastRemovedIndex = index;
 
@@ -177,7 +159,7 @@ void _removeBooking(int index, BookingData booking) {
 
   messenger.showSnackBar(snackBar);
 
-  // ⛔ FORCE REMOVE after 3 seconds
+  // ⛔️ FORCE REMOVE after 3 seconds
   Future.delayed(const Duration(seconds: 3), () {
     messenger.hideCurrentSnackBar(); // 🔥 THIS LINE FIXES IT
     _lastRemovedBooking = null;
@@ -228,48 +210,40 @@ void _removeBooking(int index, BookingData booking) {
         title: const Text("Booking", style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
-    
       ),
-      body: Column(
-        children: [
-          // Input Section
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                _inputField(Icons.person, "Client Name", _nameController),
-                const SizedBox(height: 15),
-                _inputField(Icons.phone, "Contact Number", _contactController),
-                const SizedBox(height: 15),
-                _dateRow("Pick-up Time", _pickUpDateTime, () async {
-                  final dt = await _pickDateTime();
-                  if (dt != null && mounted) {
-                    setState(() => _pickUpDateTime = dt);
-                  }
-                }),
-                const SizedBox(height: 10),
-                _dateRow("Drop-off Time", _dropOffDateTime, () async {
-                  final dt = await _pickDateTime();
-                  if (dt != null && mounted) {
-                    setState(() => _dropOffDateTime = dt);
-                  }
-                }),
-                const SizedBox(height: 20),
-                _confirmButton(),
-                const SizedBox(height: 10),
-                _isLoading
-                    ? const LinearProgressIndicator(
-                        backgroundColor: Color(0xFF279A3E),
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1B3922)),
-                      )
-                    : Container(),
-              ],
+      // FIXED: Using SingleChildScrollView + Column to prevent overflow
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // --- Input Section ---
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  _inputField(Icons.person, "Client Name", _nameController),
+                  const SizedBox(height: 15),
+                  _inputField(Icons.phone, "Contact Number", _contactController),
+                  const SizedBox(height: 15),
+                  _dateRow("Pick-up Time", _pickUpDateTime, () async {
+                    final dt = await _pickDateTime();
+                    if (dt != null) setState(() => _pickUpDateTime = dt);
+                  }),
+                  const SizedBox(height: 10),
+                  _dateRow("Drop-off Time", _dropOffDateTime, () async {
+                    final dt = await _pickDateTime();
+                    if (dt != null) setState(() => _dropOffDateTime = dt);
+                  }),
+                  const SizedBox(height: 20),
+                  _confirmButton(),
+                  if (_isLoading) const Padding(padding: EdgeInsets.only(top: 10), child: LinearProgressIndicator()),
+                ],
+              ),
             ),
-          ),
-          
-          // Bookings List Section
-          Expanded(
-            child: Container(
+
+            // --- Bookings List Section ---
+            Container(
+              width: double.infinity,
+              constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height * 0.4),
               padding: const EdgeInsets.all(20),
               decoration: const BoxDecoration(
                 color: Color(0xFF279A3E),
@@ -278,100 +252,42 @@ void _removeBooking(int index, BookingData booking) {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Bookings",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        "(${_bookings.length})",
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  
-                  if (_isLoading && _bookings.isEmpty)
-                    const Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                      ),
-                    )
-                  else if (_bookings.isEmpty)
-                    const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.calendar_today, size: 50, color: Colors.white70),
-                          SizedBox(height: 10),
-                          Text(
-                            "No bookings yet",
-                            style: TextStyle(color: Colors.white70, fontSize: 16),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            "Add your first booking above",
-                            style: TextStyle(color: Colors.white54, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    )
+                  Text("Bookings (${_bookings.length})",
+                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 15),
+                  if (_bookings.isEmpty)
+                    const Center(child: Text("No bookings yet", style: TextStyle(color: Colors.white70)))
                   else
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: _bookings.length,
-                        itemBuilder: (context, index) {
-                          final item = _bookings[index];
-                          return Dismissible(
-                            key: ValueKey(item.id),
-                            direction: DismissDirection.endToStart,
-                            onDismissed: (_) => _removeBooking(index, item),
-                            background: Container(
-                              alignment: Alignment.centerRight,
-                              padding: const EdgeInsets.only(right: 20),
-                              color: Colors.red,
-                              child: const Icon(Icons.delete, color: Colors.white),
-                            ),
-                            child: _bookingCard(item),
-                          );
-                        },
-                      ),
+                    ListView.builder(
+                      shrinkWrap: true, // IMPORTANT: Prevents height error
+                      physics: const NeverScrollableScrollPhysics(), // Let the page scroll
+                      itemCount: _bookings.length,
+                      itemBuilder: (context, index) {
+                        final item = _bookings[index];
+                        return Dismissible(
+                          key: ValueKey(item.id),
+                          onDismissed: (_) => _removeBooking(index, item),
+                          child: _bookingCard(item),
+                        );
+                      },
                     ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  // --- UI COMPONENTS ---
-
+  // UI Helper Widgets (InputField, DateRow, etc. stay as you wrote them)
   Widget _inputField(IconData icon, String label, TextEditingController controller) {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
         prefixIcon: Icon(icon, color: const Color(0xFF279A3E)),
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.grey),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.grey),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFF279A3E), width: 2),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         filled: true,
         fillColor: Colors.grey[50],
       ),
@@ -394,28 +310,12 @@ void _removeBooking(int index, BookingData booking) {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  value == null ? "Not selected" : _formatDateTime(value),
-                  style: TextStyle(
-                    color: value == null ? Colors.grey : Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Text(value == null ? "Not selected" : _formatDateTime(value),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
               ],
             ),
-            Icon(
-              Icons.calendar_today,
-              color: value == null ? Colors.grey : const Color(0xFF279A3E),
-            ),
+            const Icon(Icons.calendar_today, color: Color(0xFF279A3E)),
           ],
         ),
       ),
@@ -429,166 +329,56 @@ void _removeBooking(int index, BookingData booking) {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF1B3922),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
         onPressed: _isLoading ? null : _addBooking,
-        child: _isLoading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
-            : const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 10),
-                  Text(
-                    "Confirm Booking",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+        child: const Text("Confirm Booking", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
-Widget _bookingCard(BookingData data) {
-  return Container(
-    margin: const EdgeInsets.only(bottom: 12),
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.06),
-          blurRadius: 6,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 🔹 Name
-        Row(
-          children: [
-            const Icon(Icons.person, size: 20, color: Color(0xFF279A3E)),
+
+  Widget _bookingCard(BookingData data) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.person, color: Color(0xFF279A3E)),
             const SizedBox(width: 8),
-            Text(
-              data.name,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 6),
-
-        // 🔹 Contact
-        Row(
-          children: [
-            const Icon(Icons.phone, size: 16, color: Colors.grey),
-            const SizedBox(width: 6),
-            Text(
-              data.contact,
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-
-        const Divider(height: 20),
-
-        // 🔹 Pick up
-        Row(
-          children: [
-            const Icon(Icons.arrow_upward, size: 16, color: Colors.green),
-            const SizedBox(width: 6),
-            const Text(
-              "Pick-up:",
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(width: 6),
-            Text(_formatDateTime(data.pickUp)),
-          ],
-        ),
-
-        const SizedBox(height: 6),
-
-        // 🔹 Drop off
-        Row(
-          children: [
-            const Icon(Icons.arrow_downward, size: 16, color: Colors.red),
-            const SizedBox(width: 6),
-            const Text(
-              "Drop-off:",
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(width: 6),
-            Text(_formatDateTime(data.dropOff)),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        // 🔹 RENT BUTTON (THIS IS THE FIX)
-        Align(
-          alignment: Alignment.centerRight,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1B3922),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => RentPage(
+            Text(data.name, style: const TextStyle(fontWeight: FontWeight.bold))
+          ]),
+          Text("Contact: ${data.contact}", style: const TextStyle(color: Colors.grey)),
+          const Divider(),
+          Text("Pick-up: ${_formatDateTime(data.pickUp)}"),
+          Text("Drop-off: ${_formatDateTime(data.dropOff)}"),
+          Align(
+            alignment: Alignment.centerRight,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B3922)),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => RentPage(
                     bookingId: data.id,
                     clientName: data.name,
                     contact: data.contact,
                     startDate: data.pickUp,
                     endDate: data.dropOff,
-                  ),
-                ),
-              );
-            },
-            child: const Text(
-              "Rent Moto",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+                  )),
+                );
+              },
+              child: const Text("Rent Moto", style: TextStyle(color: Colors.white)),
             ),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
- 
-  // Helper methods
-  String _formatDateTime(DateTime dt) {
-    final String date = "${dt.day}/${dt.month}/${dt.year}";
-    final String time = "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
-    return "$date at $time";
+          )
+        ],
+      ),
+    );
   }
 
-    
+  String _formatDateTime(DateTime dt) {
+    return "${dt.day}/${dt.month}/${dt.year} at ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+  }
 }

@@ -24,15 +24,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   # Remove flutter_lints from here
-
 flutter:
   uses-material-design: true
 
   assets:
-    - assets/
-    - assets/icons/
+    - assets/icons/  
     - .env
-
 
 
   fonts:

@@ -93,7 +93,7 @@ class WelcomePageOne extends StatelessWidget {
                       // Scooter Image
                       Center(
                         child: Image.asset(
-                          'assets/scooter.png',
+                          'assets/icons/nmax155.png',
                           height: 250,
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) {
@@ -128,7 +128,7 @@ class WelcomePageOne extends StatelessWidget {
               const SizedBox(height: 8),
 
               const Text(
-                'बुक करें तुरंत',
+                'Enjoy your ride',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,

@@ -10,7 +10,6 @@ import 'package:_assignment_mobile/widget/home/location_cards.dart';
 import 'package:_assignment_mobile/widget/home/quick_actions.dart';
 import 'package:_assignment_mobile/widget/home/feature.dart';
 import 'package:_assignment_mobile/widget/home/popular_rental.dart';
-import 'package:_assignment_mobile/widget/home/new%20model%20.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -37,8 +36,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ActionCards(),
             SizedBox(height: 20),
             FeaturedBikesList(),
-            SizedBox(height: 20),
-            AvailableMotos(),
             SizedBox(height: 20),
             PopularRental(),
           ],

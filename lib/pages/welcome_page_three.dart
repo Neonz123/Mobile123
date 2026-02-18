@@ -90,10 +90,10 @@ class WelcomePageThree extends StatelessWidget {
                         ),
                       ),
 
-                      // Horse Image
+                      
                       Center(
                         child: Image.asset(
-                          'assets/horse.png',
+                          'assets/icons/pcx.png',
                           height: 250,
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) {

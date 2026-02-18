@@ -18,17 +18,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       subtitle: 'Hello there',
       description:
           'Find two-wheelers offering a range of bikes and scooters. Safe, fast, and affordable.',
-      image: 'assets/scooter.png',
+      image: 'assets/icons/nmax155.png',
       backgroundColor: const Color(0xFFE8F5F1),
       accentColor: const Color(0xFF1DB88E),
       stepNumber: '01',
     ),
     OnboardingData(
       title: 'Rent by Hour or Day',
-      subtitle: 'kokoma',
+      subtitle: 'Have a great day',
       description:
           'Choose from hundreds of quality motorcycles. Flexible pricing for short and long rides.',
-      image: 'assets/atv.png',
+      image: 'assets/icons/aerox.png',
       backgroundColor: const Color(0xFFFFF4E6),
       accentColor: const Color(0xFFF5A623),
       stepNumber: '02',
@@ -38,8 +38,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       subtitle: 'let get started',
       description:
           'All drivers and vehicles verified. 24/7 support and emergency assistance.',
-      image: 'assets/horse.png',
-      backgroundColor: const Color(0xFFE8F5F1),
+      image: 'assets/icons/pcx.png',
+      backgroundColor: Colors.white,
       accentColor: const Color(0xFF1DB88E),
       stepNumber: '03',
     ),
