@@ -6,37 +6,40 @@ const autoReturnMoto = async () => {
   try {
     await client.query("BEGIN");
 
-    // 🔥 Find expired rentals (safe with timezone)
+    // Find expired rentals
     const expired = await client.query(`
-      SELECT moto_id
-      FROM rentals
-      WHERE returned = false
+      SELECT moto_id 
+      FROM rentals 
+      WHERE returned = false 
       AND end_date <= CURRENT_TIMESTAMP
     `);
 
+    // If nothing is found, just COMMIT and STOP here.
     if (expired.rows.length === 0) {
       await client.query("COMMIT");
-      return;
+      return; // ⛔ This stops the function. Nothing will be logged.
     }
 
     const motoIds = expired.rows.map(r => r.moto_id);
 
-    // 🔁 Return motos
+    // Update Moto status
     await client.query(`
-      UPDATE motos
-      SET status = 'available'
+      UPDATE motos 
+      SET status = 'available' 
       WHERE id = ANY($1)
     `, [motoIds]);
 
-    // ✔ Mark rentals as returned
+    // Mark rentals as returned
     await client.query(`
-      UPDATE rentals
-      SET returned = true
+      UPDATE rentals 
+      SET returned = true 
       WHERE moto_id = ANY($1)
     `, [motoIds]);
 
     await client.query("COMMIT");
-    console.log("AUTO RETURN OK:", motoIds);
+
+    // ✅ This will now ONLY run if bikes were actually returned
+    console.log("AUTO RETURN SUCCESS:", motoIds);
 
   } catch (err) {
     await client.query("ROLLBACK");
